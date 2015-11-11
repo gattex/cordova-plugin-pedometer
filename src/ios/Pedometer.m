@@ -42,8 +42,18 @@
 - (void) startPedometerUpdates:(CDVInvokedUrlCommand*)command;
 {
     __block CDVPluginResult* pluginResult = nil;
+    NSDictionary* args = [command.arguments objectAtIndex:0];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"];
+    [dateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+    NSDate* startDate;
+    if ([args objectForKey:@"startDate"]) {
+        startDate = [dateFormatter dateFromString:[args objectForKey:@"startDate"]];
+    } else {
+        startDate = [NSDate date];
+    }
 
-    [self.pedometer startPedometerUpdatesFromDate:[NSDate date] withHandler:^(CMPedometerData *pedometerData, NSError *error) {
+    [self.pedometer startPedometerUpdatesFromDate:startDate withHandler:^(CMPedometerData *pedometerData, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
             if (error)
             {
