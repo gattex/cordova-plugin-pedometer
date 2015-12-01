@@ -9,10 +9,10 @@
     <engines>
         <engine name="cordova" version=">=3.0.0" />
     </engines>
-    <js-module src="www/pedometer.js" name="Pedometer">
-        <clobbers target="pedometer" />
-    </js-module>
     <platform name="ios">
+        <js-module src="www/pedometer.js" name="Pedometer">
+            <clobbers target="pedometer" />
+        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="Pedometer">
                 <param name="ios-package" value="Pedometer" />
@@ -22,13 +22,5 @@
         <header-file src="src/ios/Pedometer.h" />
         <source-file src="src/ios/Pedometer.m" />
         <framework src="CoreMotion.framework" />
-    </platform>
-    <platform name="android">
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="Pedometer">
-                <param name="android-package" value="org.apache.cordova.pedometer.PedoListener" />
-            </feature>
-        </config-file>
-        <source-file src="src/android/PedoListener.java" target-dir="src/org/apache/cordova/pedometer" />
     </platform>
 </plugin>
