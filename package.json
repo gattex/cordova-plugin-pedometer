@@ -6,13 +6,12 @@
   "cordova": {
     "id": "cordova-plugin-pedometer",
     "platforms": [
-      "ios",
-      "android"
+      "ios"
     ]
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leecrossley/cordova-plugin-pedometer.git"
+    "url": "git+https://github.com/monestereo/cordova-plugin-pedometer.git"
   },
   "keywords": [
     "cordova",
@@ -22,8 +21,7 @@
     "distance",
     "pedestrian",
     "ecosystem:cordova",
-    "cordova-ios",
-    "cordova-android"
+    "cordova-ios"
   ],
   "engines": [
     {
