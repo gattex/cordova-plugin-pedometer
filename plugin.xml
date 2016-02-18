@@ -9,10 +9,10 @@
     <engines>
         <engine name="cordova" version=">=3.0.0" />
     </engines>
+    <js-module src="www/pedometer.js" name="Pedometer">
+        <clobbers target="pedometer" />
+    </js-module>
     <platform name="ios">
-        <js-module src="www/pedometer.js" name="Pedometer">
-            <clobbers target="pedometer" />
-        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="Pedometer">
                 <param name="ios-package" value="Pedometer" />
@@ -23,4 +23,34 @@
         <source-file src="src/ios/Pedometer.m" />
         <framework src="CoreMotion.framework" />
     </platform>
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="Pedometer" >
+                <param name="android-package" value="de.antwerpes.cordova.pedometer.Pedometer"/>
+            </feature>
+        </config-file>
+         <config-file target="AndroidManifest.xml" parent="/manifest">
+             <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
+          <uses-permission android:name="android.permission.WAKE_LOCK" />
+          <uses-permission android:name="android.permission.VIBRATE" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <service android:exported="false" android:name="de.antwerpes.cordova.pedometer.PedometerService" android:process="de.antwerpes.time2move">
+            </service>
+            <receiver android:enabled="true" android:exported="true" android:name="de.antwerpes.cordova.pedometer.StepBroadcastReceiver">
+            </receiver>
+        </config-file>
+
+        <framework src="src/android/build.gradle" custom="true" type="gradleReference" />
+
+        <source-file src="src/android/Pedometer.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/StepBroadcastReceiver.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/StepBroadcastListener.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/StepDbHelper.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/PedometerService.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/StepListener.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+        <source-file src="src/android/StepDetector.java" target-dir="src/de/antwerpes/cordova/pedometer" />
+    </platform>
+
 </plugin>
