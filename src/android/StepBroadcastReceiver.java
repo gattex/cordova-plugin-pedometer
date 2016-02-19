@@ -150,10 +150,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
         String query = "SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE DATE("+ StepDbHelper.COLUMN_DAY + ") BETWEEN ? AND ?";
         String[] params = new String[] {startDate, endDate};
-        // if (startDate == endDate) {
-        //    query = "SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE DATE("+ StepDbHelper.COLUMN_DAY + ") >= ?";
-        //    params = new String[] {startDate};
-        //}
 
         Cursor c = db.rawQuery(query, params);
         JSONArray result = null;
@@ -236,9 +232,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
     @SuppressLint("CommitPrefEdits")
     @Override
     public void onReceive(Context context, Intent intent) {
-        //String filename = "steps.json";
-        //String fullFilename = context.getFilesDir() + "/" + filename; //file:///data/data/pe.pedo.pedo/files/"
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         Date now = new Date();
         String todayDateString = dateFormat.format(now);
@@ -251,7 +244,7 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
             ContentValues values = new ContentValues();
             values.put(field, 1);
             values.put(StepDbHelper.COLUMN_DAY, todayDateString);
-            long newRowId = db.insert(StepDbHelper.STEPS_TABLE_NAME, "null", values);
+            db.insert(StepDbHelper.STEPS_TABLE_NAME, "null", values);
 
             todaySteps = getStepsForToday();
         } else {
@@ -262,7 +255,7 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
                 values.put(field, fieldValue + 1);
                 String where = StepDbHelper.COLUMN_DAY + " = ?";
                 String[] whereArgs = new String[] {todayDateString};
-                int count = db.update(
+                db.update(
                         StepDbHelper.STEPS_TABLE_NAME,
                         values,
                         where,

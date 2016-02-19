@@ -9,16 +9,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import java.util.Iterator;
 import java.util.List;
 
 public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
-    public static final String TAG = "Pedometer";
     protected Context mContext;
     private StepBroadcastReceiver mBroadCastReciever;
     private int mListenerIndex;
@@ -131,7 +130,7 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
     private boolean isServiceRunning(){
         String serviceName = "de.antwerpes.cordova.pedometer.PedometerService";
         boolean serviceRunning = false;
-        ActivityManager am = (ActivityManager) this.cordova.getActivity().getSystemService(this.cordova.getActivity().ACTIVITY_SERVICE);
+        ActivityManager am = (ActivityManager) this.cordova.getActivity().getSystemService(Activity.ACTIVITY_SERVICE);
         List<ActivityManager.RunningServiceInfo> l = am.getRunningServices(5000);
         Iterator<ActivityManager.RunningServiceInfo> i = l.iterator();
         while (!serviceRunning && i.hasNext()) {

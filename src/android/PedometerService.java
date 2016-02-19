@@ -29,7 +29,6 @@ public class PedometerService extends Service implements StepListener {
 
     private StepDetector mStepDetector;
     private SensorManager mSensorManager;
-    private Sensor mSensor;
     private StepBroadcastReceiver mStepBroadcastReceiver;
 
     public PedometerService() {
@@ -151,7 +150,7 @@ public class PedometerService extends Service implements StepListener {
     }
 
     public void registerDetector() {
-        mSensor = mSensorManager.getDefaultSensor(
+        Sensor mSensor = mSensorManager.getDefaultSensor(
                 Sensor.TYPE_ACCELEROMETER);
         int refreshRate = 20000;
         mSensorManager.registerListener(mStepDetector,
