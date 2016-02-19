@@ -59,7 +59,7 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
                 this.cordova.getActivity().startService(getServiceIntend());
             }
             if (this.stepCallbackContext != null) {
-                callbackContext.error( "Battery listener already running.");
+                callbackContext.error( "Step Counter listener already running.");
                 return true;
             }
             this.stepCallbackContext = callbackContext;
@@ -70,19 +70,26 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
             return true;
 
         }
-        else if(action.equals("stop")){
+        else if(action.equals("stopPedometerUpdates")){
+
             this.cordova.getActivity().stopService(getServiceIntend());
-            this.sendUpdate(new JSONObject(), false);
+            JSONObject info = new JSONObject();
+            info.put("status", "stopped");
+            this.sendUpdate(info, false);
             this.stepCallbackContext = null;
             callbackContext.success();
         }
         else if(action.equals("isRunning")){
-            if(isServiceRunning()){
-                callbackContext.success();
-            }else{
-                callbackContext.error("Service Not running");
-            }
-        }else if(action.equals("queryData")){
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    if (isServiceRunning()) {
+                        callbackContext.success();
+                    } else {
+                        callbackContext.error("Service Not running");
+                    }
+                }
+            });
+        } else if(action.equals("queryData")){
             final JSONObject options = args.getJSONObject(0);
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
@@ -137,7 +144,7 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
     }
 
     /**
-     * Stop battery receiver.
+     * Stop step receiver.
      */
     public void onDestroy() {
         mBroadCastReciever.unregisterListener(mListenerIndex);
@@ -145,7 +152,7 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
 
 
     /**
-     * Stop battery receiver.
+     * Stop steps receiver.
      */
     public void onReset() {
         mBroadCastReciever.unregisterListener(mListenerIndex);
@@ -153,6 +160,9 @@ public class Pedometer extends CordovaPlugin implements StepBroadcastListener {
 
     private void sendUpdate(JSONObject info, boolean keepCallback) {
         if (this.stepCallbackContext != null) {
+            if (info == null) {
+                info = new JSONObject();
+            }
             PluginResult result = new PluginResult(PluginResult.Status.OK, info);
             result.setKeepCallback(keepCallback);
             this.stepCallbackContext.sendPluginResult(result);

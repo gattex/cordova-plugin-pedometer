@@ -44,7 +44,6 @@ public class PedometerService extends Service implements StepListener {
         mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mStepBroadcastReceiver =
                 StepBroadcastReceiver.getInstance(getApplicationContext());
-
     }
 
     @Override
@@ -53,10 +52,10 @@ public class PedometerService extends Service implements StepListener {
         if (PedometerService.ACTION_STOP_SERVICE.equals(intent.getAction())) {
             Log.d("PEDOM","called to cancel service");
             stopSelf();
+
             return 0;
         } else if (PedometerService.ACTION_START_SERVICE.equals(intent.getAction())) {
             start();
-
             Log.wtf("PEDOM", "onStart Command");
             if( mPowerManager == null )
             {
@@ -163,4 +162,5 @@ public class PedometerService extends Service implements StepListener {
     private void unregisterDetector() {
         mSensorManager.unregisterListener(mStepDetector);
     }
+
 }

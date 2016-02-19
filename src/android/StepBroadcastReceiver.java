@@ -46,7 +46,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
     private static StepDbHelper mDBHelper;
     private ArrayList<StepBroadcastListener> mStepListeners = new ArrayList<StepBroadcastListener>();
 
-
     public StepBroadcastReceiver(Context context) {
         mContext = context;
         try {
@@ -135,7 +134,7 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
     public JSONArray getSteps() {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
 
-        Cursor c = db.rawQuery("SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE 1", null);
+        Cursor c = db.rawQuery("SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME, null);
         JSONArray result = null;
         try {
             result = cursorToJSON(c);
@@ -144,13 +143,19 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         }
 
         c.close();
-        db.close();
         return result;
     }
 
     public JSONArray queryData(String startDate, String endDate) {
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
-        Cursor c = db.rawQuery("SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE DATE("+ StepDbHelper.COLUMN_DAY + ") BETWEEN DATE(?) AND DATE(?)", new String[] {startDate, endDate});
+        String query = "SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE DATE("+ StepDbHelper.COLUMN_DAY + ") BETWEEN ? AND ?";
+        String[] params = new String[] {startDate, endDate};
+        // if (startDate == endDate) {
+        //    query = "SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE DATE("+ StepDbHelper.COLUMN_DAY + ") >= ?";
+        //    params = new String[] {startDate};
+        //}
+
+        Cursor c = db.rawQuery(query, params);
         JSONArray result = null;
         try {
             result = cursorToJSON(c);
@@ -162,7 +167,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
             result = new JSONArray();
         }
         c.close();
-        db.close();
         return result;
     }
 
@@ -171,10 +175,11 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         Date now = new Date();
         String todayDateString = dateFormat.format(now);
-        Cursor c = db.rawQuery("SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE " + StepDbHelper.COLUMN_DAY + " = ?", new String[] {todayDateString});
+        String query = "SELECT * FROM " + StepDbHelper.STEPS_TABLE_NAME + " WHERE " + StepDbHelper.COLUMN_DAY + " = ?";
+        String[] params = new String[] {todayDateString};
+        Cursor c = db.rawQuery(query, params);
         if (c.getCount() == 0) {
             c.close();
-            db.close();
             return null;
         }
 
@@ -186,7 +191,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         }
 
         c.close();
-        db.close();
         return result;
     }
 
@@ -241,31 +245,36 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         String field = getFieldNameCurrentTime();
 
         JSONObject todaySteps = getStepsForToday();
-        for (StepBroadcastListener stepListener : mStepListeners) {
-            stepListener.onStep(todaySteps);
-        }
 
         if (todaySteps == null) {
             SQLiteDatabase db = mDBHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(field, 1);
-            db.insert(StepDbHelper.STEPS_TABLE_NAME, "null", values);
+            values.put(StepDbHelper.COLUMN_DAY, todayDateString);
+            long newRowId = db.insert(StepDbHelper.STEPS_TABLE_NAME, "null", values);
+
+            todaySteps = getStepsForToday();
         } else {
             try {
-                JSONObject todayObj = getStepsForToday();
-                int fieldValue = todayObj != null ? todayObj.getInt(field) : 0;
+                int fieldValue = todaySteps.getInt(field);
                 SQLiteDatabase db = mDBHelper.getReadableDatabase();
                 ContentValues values = new ContentValues();
-                values.put(StepDbHelper.COLUMN_DAY, todayDateString);
                 values.put(field, fieldValue + 1);
-                db.insert(
+                String where = StepDbHelper.COLUMN_DAY + " = ?";
+                String[] whereArgs = new String[] {todayDateString};
+                int count = db.update(
                         StepDbHelper.STEPS_TABLE_NAME,
-                        "null",
-                        values
+                        values,
+                        where,
+                        whereArgs
                 );
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+
+        for (StepBroadcastListener stepListener : mStepListeners) {
+            stepListener.onStep(todaySteps);
         }
 
         JSONArray achieved = null;
@@ -324,18 +333,16 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
     private int getStepsTotal(){
         SQLiteDatabase db = mDBHelper.getReadableDatabase();
         Cursor c = db.rawQuery("SELECT "+
-                "Sum("+StepDbHelper.COLUMN_DAY_STEPS_1+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_2+") + "+StepDbHelper.COLUMN_DAY_STEPS_3+" + Sum("+StepDbHelper.COLUMN_DAY_STEPS_4+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_5+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_3+") AS totalSteps FROM " + StepDbHelper.STEPS_TABLE_NAME, null);
+                "Sum("+StepDbHelper.COLUMN_DAY_STEPS_1+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_2+") + "+StepDbHelper.COLUMN_DAY_STEPS_3+" + Sum("+StepDbHelper.COLUMN_DAY_STEPS_4+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_5+") + Sum("+StepDbHelper.COLUMN_DAY_STEPS_6+") AS totalSteps FROM " + StepDbHelper.STEPS_TABLE_NAME, null);
         c.moveToFirst();
         if (c.getCount() < 1) {
             c.close();
-            db.close();
             return 0;
         }
 
         int total = c.getInt(c.getColumnIndex("totalSteps"));
 
         c.close();
-        db.close();
         return total;
     }
 
