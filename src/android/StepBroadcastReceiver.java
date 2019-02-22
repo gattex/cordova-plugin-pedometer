@@ -1,31 +1,20 @@
 package de.antwerpes.cordova.pedometer;
 
 import android.annotation.SuppressLint;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 
-import android.os.Vibrator;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.util.Log;
+
 
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,8 +22,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 
-import de.antwerpes.time2move.MainActivity;
-import de.antwerpes.time2move.R;
 
 public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
 
@@ -48,16 +35,7 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
 
     public StepBroadcastReceiver(Context context) {
         mContext = context;
-        try {
-            mAchievements = getAchievements(context).getJSONArray("achievements");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         mDBHelper = new StepDbHelper(context);
-
         gregorian = new GregorianCalendar();
         StepBroadcastReceiver.instance = this;
     }
@@ -190,27 +168,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         return result;
     }
 
-    public JSONObject getAchievements(Context context) throws IOException, JSONException{
-        if (achivementsJson != null) {
-            return achivementsJson;
-        }
-
-        InputStream is = context.getAssets().open("www/assets/achievements.json");
-
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        String line;
-        String achievementsString = "";
-
-        while ((line = br.readLine()) != null) {
-            achievementsString += line;
-        }
-
-        br.close();
-
-        achivementsJson = new JSONObject(achievementsString);
-
-        return achivementsJson;
-    }
 
     private String getFieldNameCurrentTime() {
         int hour = gregorian.get(Calendar.HOUR_OF_DAY);
@@ -269,58 +226,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         for (StepBroadcastListener stepListener : mStepListeners) {
             stepListener.onStep(todaySteps);
         }
-
-        JSONArray achieved = null;
-        try {
-            achieved = checkAchivement();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        SharedPreferences preferences = context.getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
-        int lastAchievedIndex = preferences.getInt("var1", 0);
-        if (achieved != null && achieved.length() > 0 && lastAchievedIndex < achieved.length()){
-            JSONObject  achivementDescription = null;
-            try {
-                achivementDescription = (JSONObject) achieved.get(achieved.length() - 1);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            Intent notificationIntent = new Intent(mContext, MainActivity.class);
-            PendingIntent contentIntent = PendingIntent.getActivity(mContext,
-                    334, notificationIntent,
-                    PendingIntent.FLAG_ONE_SHOT);
-            String achievementDescription = null;
-            try {
-                assert achivementDescription != null;
-                achievementDescription = achivementDescription.getString("name");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            Notification note =
-                    new NotificationCompat.Builder(mContext)
-                            .setSmallIcon(R.drawable.ic_notification)
-                            .setColor(Color.argb(1, 208, 26, 26))
-                            .setContentTitle("New Milestone")
-                            .setContentText("You´ve reached a new milestone " + achievementDescription)
-                            .setPriority(Notification.PRIORITY_HIGH)
-                            .setContentIntent(contentIntent)
-                            .setOngoing(false)
-                            .build();
-            note.flags |= Notification.FLAG_AUTO_CANCEL;
-
-            NotificationManager mNotificationManager =
-                    (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.notify(334, note);
-
-            int achievedIndex = achieved.length();
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putInt("var1", achievedIndex);
-            editor.commit();
-            Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-            v.vibrate(333);
-        }
     }
 
     private int getStepsTotal(){
@@ -339,18 +244,6 @@ public class StepBroadcastReceiver extends WakefulBroadcastReceiver {
         return total;
     }
 
-    private JSONArray checkAchivement() throws JSONException {
-        JSONArray achieved = new JSONArray();
-        int steps = getStepsTotal();
-        for (int i = 0; i < mAchievements.length(); i++) {
-            JSONObject achivementDescription = mAchievements.getJSONObject(i);
-
-            if(steps >= achivementDescription.getInt("steps") ){
-                achieved.put(achivementDescription);
-            }
-        }
-        return achieved;
-    }
     public int addStepListener(StepBroadcastListener sl) {
         int index = mStepListeners.size();
         mStepListeners.add(sl);
