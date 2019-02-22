@@ -41,11 +41,13 @@ public class PedometerService extends Service implements StepListener {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // Called when the Service is started
+        if (null == intent || null == intent.getAction ()) {
+            return START_STICKY;
+        }
         if (PedometerService.ACTION_STOP_SERVICE.equals(intent.getAction())) {
             Log.d("PEDOM","called to cancel service");
             stopSelf();
-
-            return 0;
+            return START_STICKY_COMPATIBILITY;
         } else if (PedometerService.ACTION_START_SERVICE.equals(intent.getAction())) {
             start();
             Log.wtf("PEDOM", "onStart Command");
