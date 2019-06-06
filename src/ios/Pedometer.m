@@ -62,6 +62,7 @@
             else
             {
                 NSDictionary* pedestrianData = @{
+                    @"averageTimeMeters": pedometerData.averageActivePace ? pedometerData.averageActivePace : [NSNumber numberWithInt:0],
                     @"startDate": [NSString stringWithFormat:@"%f", [pedometerData.startDate timeIntervalSince1970] * 1000],
                     @"endDate": [NSString stringWithFormat:@"%f", [pedometerData.endDate timeIntervalSince1970] * 1000],
                     @"numberOfSteps": [CMPedometer isStepCountingAvailable] && pedometerData.numberOfSteps ? pedometerData.numberOfSteps : [NSNumber numberWithInt:0],
@@ -107,6 +108,7 @@
             else
             {
                 NSDictionary* pedestrianData = @{
+                    @"averageTimeMeters": pedometerData.averageActivePace ? pedometerData.averageActivePace : [NSNumber numberWithInt:0],
                     @"startDate": [NSString stringWithFormat:@"%f", [pedometerData.startDate timeIntervalSince1970] * 1000],
                     @"numberOfSteps": [CMPedometer isStepCountingAvailable] && pedometerData.numberOfSteps ? pedometerData.numberOfSteps : [NSNumber numberWithInt:0],
                     @"distance": [CMPedometer isDistanceAvailable] && pedometerData.distance ? pedometerData.distance : [NSNumber numberWithInt:0],
